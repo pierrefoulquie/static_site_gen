@@ -8,9 +8,8 @@ class TextType(Enum):
     LINK = "link"
     IMAGE = "image"
 
-
 class TextNode():
-    def __init__(self, text, textType, url = None):
+    def __init__(self, text, textType, url=None):
         self.text = text
         self.textType = textType
         self.url = url
@@ -28,9 +27,3 @@ class TextNode():
     def __repr__(self):
         return(f"TextNode({self.text}, {self.textType.value}, {self.url})")
 
-# def main():
-#     text_node = TextNode("This is some anchor text", TextType.LINK, "https://github.com/pierrefoulquie/" )
-#     print(text_node)
-#
-# if __name__ == "__main__":
-#     main()
