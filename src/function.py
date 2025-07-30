@@ -82,9 +82,14 @@ def split_nodes_image(old_nodes):
             for temp_node in temp_node_list:
                 if temp_node != "":
                     if re.match(image_pattern, temp_node):
-                        alt_text = re.findall(alt_text_pattern, temp_node)[0]
-                        url = re.findall(url_pattern, temp_node)[0]
-                        new_nodes_list.append(TextNode(alt_text, TextType.IMAGE, url))
+                        alt_text = re.findall(alt_text_pattern, temp_node)[0].strip()
+                        url = re.findall(url_pattern, temp_node)[0].strip()
+                        if (alt_text != ""
+                                and url != ""):
+                            new_nodes_list.append(TextNode(alt_text, TextType.IMAGE, url))
+                        else:
+                            new_nodes_list.append(TextNode(temp_node, TextType.TEXT))
+
                     else:
                         new_nodes_list.append(TextNode(temp_node, TextType.TEXT))
     return new_nodes_list
@@ -104,9 +109,21 @@ def split_nodes_link(old_nodes):
             for temp_node in temp_node_list:
                 if temp_node != "":
                     if re.match(link_pattern, temp_node):
-                        anchor = re.findall(anchor_pattern, temp_node)[0]
-                        url = re.findall(url_pattern, temp_node)[0]
-                        new_nodes_list.append(TextNode(anchor, TextType.LINK, url))
+                        anchor = re.findall(anchor_pattern, temp_node)[0].strip()
+                        url = re.findall(url_pattern, temp_node)[0].strip()
+                        if (anchor != ""
+                                and url != ""):
+                            new_nodes_list.append(TextNode(anchor, TextType.LINK, url))
+                        else:
+                            new_nodes_list.append(TextNode(temp_node, TextType.TEXT))
                     else:
                         new_nodes_list.append(TextNode(temp_node, TextType.TEXT))
     return new_nodes_list
+
+def text_to_textnodes(text):
+    text_nodes = (split_nodes_image((split_nodes_link([TextNode(text, TextType.TEXT)]))))
+    for text_type in [TextType.BOLD, TextType.ITALIC, TextType.CODE]:
+        text_nodes = split_nodes_delimiter(text_nodes, text_type.value["delim"], text_type)
+    return text_nodes
+    
+
