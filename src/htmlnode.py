@@ -75,6 +75,27 @@ class ParentNode(HTMLNode):
             html_str += child.to_html()
         return f"<{first_tag}>{html_str}</{self.tag}>"
 
+class TextNode():
+    def __init__(self, text, textType, url=None):
+        self.text = text
+        self.textType = textType
+        self.url = url
+
+    def __eq__(self, o):
+        if (
+            type(self) == type(o)
+            and self.text == o.text
+            and self.textType == o.textType
+            and self.url == o.url
+        ):
+                return True
+        return False
+
+    def __repr__(self):
+        if self.url == None:
+            return(f"TextNode({self.text}, {self.textType})")
+        return(f"TextNode({self.text}, {self.textType}, {self.url})")
+
 
 
 

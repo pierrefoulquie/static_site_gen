@@ -1,5 +1,5 @@
-from textnode import TextType, TextNode
-from htmlnode import HTMLNode, LeafNode
+from textnode import TextType
+from htmlnode import HTMLNode, LeafNode, TextNode
 def main():
     leaf_node = LeafNode("a", "Click me!",{"href": "https://www.google.com"})
 

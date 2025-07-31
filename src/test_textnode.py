@@ -1,6 +1,7 @@
 import unittest
-from textnode import TextNode, TextType
-from function import split_nodes_delimiter, is_num_delimiter_even, extract_markdown_images, extract_markdown_links, split_nodes_link, split_nodes_image, text_to_textnodes
+from textnode import TextType, BlockType
+from htmlnode import HTMLNode, ParentNode, LeafNode, TextNode
+from function import split_nodes_delimiter, is_num_delimiter_even, extract_markdown_images, extract_markdown_links, split_nodes_link, split_nodes_image, text_to_textnodes, markdown_to_blocks, block_to_block_type
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -268,6 +269,76 @@ class TestTextToTextNodes(unittest.TestCase):
                        (TextNode("link", TextType.LINK, "https://boot.dev")),
                        ]
         self.assertListEqual(text_nodes, model_nodes)
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def testMarkdownToBlocksEmpty(self):
+        markdown = ""
+        model = []
+        blocks = markdown_to_blocks(markdown)
+        self.assertEqual(model, blocks)
+
+    def testMarkdownToBlocksBasic(self):
+        markdown = """
+# This is a heading
+
+This is a paragraph of text. It has some **bold** and _italic_ words inside of it.
+
+- This is the first list item in a list block
+- This is a list item
+- This is another list item"""
+        model = ["# This is a heading",
+                 "This is a paragraph of text. It has some **bold** and _italic_ words inside of it.",
+                 "- This is the first list item in a list block\n- This is a list item\n- This is another list item"]
+        blocks = markdown_to_blocks(markdown)
+        self.assertEqual(model, blocks)
+
+class TestBlockToBlockTypes(unittest.TestCase):
+    def test_heading_block(self):
+        block = "#### this is a heading"
+        result = block_to_block_type(block)
+        model = BlockType.HEADING
+        self.assertEqual(result, model)
+
+    def test_code_block(self):
+        block = """```this is a first line of code
+and this is the second```"""
+        result = block_to_block_type(block)
+        model = BlockType.CODE
+        self.assertEqual(result, model)
+
+    def test_quote_block(self):
+        block = """>this is a quote
+>this is still the same quote
+>and here ends the quote"""
+        result = block_to_block_type(block)
+        model = BlockType.QUOTE
+        self.assertEqual(result, model)
+
+    def test_unordered_block(self):
+        block = """- this is an unordered list
+- this is the second element
+- and this one is the third
+- this one is the last"""
+        result = block_to_block_type(block)
+        model = BlockType.UNORDERED_LIST
+        self.assertEqual(result, model)
+
+    def test_ordered_block(self):
+        block = """1. this is an ordered list
+2. this is the second element
+3. this is the third element
+4. this is the last element"""
+        result = block_to_block_type(block)
+        model = BlockType.ORDERED_LIST
+        self.assertEqual(result, model)
+
+    def test_paragraph_block(self):
+        block = """this is a simple paragraph block
+with two lines"""
+        result = block_to_block_type(block)
+        model = BlockType.PARAGRAPH
+        self.assertEqual(result, model)
+
 
 if __name__ == "__main__":
     unittest.main()

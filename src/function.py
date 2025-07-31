@@ -1,6 +1,6 @@
 import re
-from textnode import TextType, TextNode
-from htmlnode import LeafNode, ParentNode
+from textnode import TextType, BlockType
+from htmlnode import LeafNode, ParentNode, TextNode
 
 def text_node_to_html_node(text_node):
     if text_node.textType == TextType.TEXT:
@@ -125,5 +125,47 @@ def text_to_textnodes(text):
     for text_type in [TextType.BOLD, TextType.ITALIC, TextType.CODE]:
         text_nodes = split_nodes_delimiter(text_nodes, text_type.value["delim"], text_type)
     return text_nodes
+
+def markdown_to_blocks(markdown):
+    blocks = markdown.split("\n\n")
+    clean_blocks = list()
+    for b in blocks:
+        if b != "":
+            clean_blocks.append(b.strip())
+    return clean_blocks
     
+def block_to_block_type(block):
+    if block[0] == "#":
+        i = 0
+        for c in block:
+            if c == "#":
+                i += 1
+        if i <= 6:
+            if block[i] == " ":
+                return BlockType.HEADING
+    elif block[:3] == "```" and block[-3:] == "```":
+        return BlockType.CODE
+
+    multi_lines = block.split("\n")
+
+    q = 0
+    u = 0
+    o = 0
+    num = 0
+    for i, line in enumerate(multi_lines):
+        if line[0] == ">":
+            q += 1
+        elif line[:2] == "- ":
+            u += 1
+        elif line[0] == str(i+1) and line[1:3] == ". ":
+            o += 1
+        num += 1
+    if q == num:
+        return BlockType.QUOTE
+    elif u == num:
+        return BlockType.UNORDERED_LIST
+    elif o == num:
+        return BlockType.ORDERED_LIST
+
+    return BlockType.PARAGRAPH
 
