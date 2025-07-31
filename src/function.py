@@ -169,3 +169,64 @@ def block_to_block_type(block):
 
     return BlockType.PARAGRAPH
 
+def get_heading_level(heading):
+    level = 0
+    for c in heading:
+        if c == "#":
+            level += 1
+    return level
+
+def get_tag_and_text(block, block_type):
+    if block_type == BlockType.HEADING:
+        #for headings, build tag (h + level) and format text
+        level = get_heading_level(block)
+        tag = block_type.value["delim"] + str(level)
+        text = block[level:].strip()
+    else:
+        #generic tag
+        tag = block_type.value["delim"]
+    #text formating for non list block types
+    if block_type == BlockType.PARAGRAPH:
+        text = block.strip()
+    elif block_type == BlockType.CODE:
+        text = block[3:-3]
+    #text formating for quotes 
+    elif block_type == BlockType.QUOTE:
+        text = list()
+        lines = block.split("\n")
+        for line in lines:
+            text.append(line[1:].strip())
+        text = "\n".join(text)
+    #text formating for lists 
+    elif block_type in (BlockType.UNORDERED_LIST, BlockType.ORDERED_LIST):
+        text = list()
+        lines = block.split("\n")
+        for line in lines:
+            #get marker lenght by finding first whitespace
+            first_blank = 0
+            for i, c in enumerate(line):
+                if c == " ":
+                    first_blank = i
+                    break
+            text.append(line[first_blank:].strip())
+        text = "\n".join(text)
+    return (tag, text)
+
+# def markdown_to_html_node(markdown):
+#     blocks = markdown_to_blocks(markdown)
+#     block_types = list()
+#     for block in blocks:
+#         block_types.append(block_to_block_type(block))
+#
+#     node_list = list()
+#     for b, bt in zip(blocks, block_types):
+#         if bt == BlockType.HEADING:
+#             level = get_heading_level(b)
+#             tag = bt.value["delim"] + str(level)
+#             text = b[level:]
+#         else:
+#             tag = bt.value["delim"]
+
+
+
+

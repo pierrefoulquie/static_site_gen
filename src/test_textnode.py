@@ -1,7 +1,67 @@
 import unittest
 from textnode import TextType, BlockType
 from htmlnode import HTMLNode, ParentNode, LeafNode, TextNode
-from function import split_nodes_delimiter, is_num_delimiter_even, extract_markdown_images, extract_markdown_links, split_nodes_link, split_nodes_image, text_to_textnodes, markdown_to_blocks, block_to_block_type
+from function import (split_nodes_delimiter,
+        is_num_delimiter_even,
+        extract_markdown_images,
+        extract_markdown_links,
+        split_nodes_link,
+        split_nodes_image,
+        text_to_textnodes,
+        markdown_to_blocks,
+        block_to_block_type,
+        get_tag_and_text)
+
+class TestGetTagAndText(unittest.TestCase):
+    def testParagraph(self):
+        paragraph = """this is a paragraph"""
+        result = get_tag_and_text(paragraph, BlockType.PARAGRAPH)
+        model = ("p", "this is a paragraph")
+        self.assertEqual(result, model)
+
+    def testHeading1(self):
+        heading = "#this is a h1 heading"
+        result = get_tag_and_text(heading, BlockType.HEADING)
+        model = ("h1", "this is a h1 heading")
+        self.assertEqual(result, model)
+
+    def testHeading2(self):
+        heading = "##this is a h2 heading"
+        result = get_tag_and_text(heading, BlockType.HEADING)
+        model = ("h2", "this is a h2 heading")
+        self.assertEqual(result, model)
+
+    def testCode(self):
+        code = """```this is
+a code
+block```"""
+        result = get_tag_and_text(code, BlockType.CODE)
+        model = ("code", "this is\na code\nblock")
+        self.assertEqual(result, model)
+
+    def testQuote(self):
+        quote = """>this is
+>a quote 
+>block"""
+        result = get_tag_and_text(quote, BlockType.QUOTE)
+        model = ("blockquote", "this is\na quote\nblock")
+        self.assertEqual(result, model)
+
+    def testUnordered(self):
+        unordered = """- this is
+- an unordered 
+- list"""
+        result = get_tag_and_text(unordered, BlockType.UNORDERED_LIST)
+        model = ("ul", "this is\nan unordered\nlist")
+        self.assertEqual(result, model)
+
+    def testOrdered(self):
+        ordered = """1. this is
+2. an ordered 
+3. list"""
+        result = get_tag_and_text(ordered, BlockType.ORDERED_LIST)
+        model = ("ol", "this is\nan ordered\nlist")
+        self.assertEqual(result, model)
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
