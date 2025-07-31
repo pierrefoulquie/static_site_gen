@@ -1,5 +1,5 @@
 import unittest
-from textnode import TextType, BlockType
+from enum_types import TextType, BlockType
 from htmlnode import HTMLNode, ParentNode, LeafNode, TextNode
 from function import (split_nodes_delimiter,
         is_num_delimiter_even,
@@ -10,7 +10,8 @@ from function import (split_nodes_delimiter,
         text_to_textnodes,
         markdown_to_blocks,
         block_to_block_type,
-        get_tag_and_text)
+        get_tag_and_text,
+        markdown_to_html_node)
 
 class TestGetTagAndText(unittest.TestCase):
     def testParagraph(self):
@@ -52,7 +53,7 @@ block```"""
 - an unordered 
 - list"""
         result = get_tag_and_text(unordered, BlockType.UNORDERED_LIST)
-        model = ("ul", "this is\nan unordered\nlist")
+        model = ("ul", "<li>this is</li><li>an unordered</li><li>list</li>")
         self.assertEqual(result, model)
 
     def testOrdered(self):
@@ -60,7 +61,7 @@ block```"""
 2. an ordered 
 3. list"""
         result = get_tag_and_text(ordered, BlockType.ORDERED_LIST)
-        model = ("ol", "this is\nan ordered\nlist")
+        model = ("ol", "<li>this is</li><li>an ordered</li><li>list</li>")
         self.assertEqual(result, model)
 
 class TestTextNode(unittest.TestCase):
@@ -397,6 +398,54 @@ and this is the second```"""
 with two lines"""
         result = block_to_block_type(block)
         model = BlockType.PARAGRAPH
+        self.assertEqual(result, model)
+
+class TestMarkdownToHTMLNode(unittest.TestCase):
+    def testBasic(self):
+        markdown = """This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+"""
+        result =  markdown_to_html_node(markdown)
+        model = "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>"
+        self.assertEqual(result, model)
+
+    def testBigHeading(self):
+        markdown = "#    Big Heading  "
+        result =  markdown_to_html_node(markdown)
+        model = "<div><h1>Big Heading</h1></div>"
+        self.assertEqual(result, model)
+
+    def testMultiLine(self):
+        markdown = """This is
+a multi-line
+
+
+paragraph with 
+
+
+
+strange spacing."""
+        result =  markdown_to_html_node(markdown)
+        model = "<div><p>This is a multi-line</p><p>paragraph with</p><p>strange spacing.</p></div>"
+        self.assertEqual(result, model)
+
+    def testOrderedList(self):
+        markdown = """1. First
+3. Third
+7. Seventh"""
+        result =  markdown_to_html_node(markdown)
+        model = "<div><ol><li>First</li><li>Third</li><li>Seventh</li></ol></div>"
+        self.assertEqual(result, model)
+
+    def testListWithSpaces(self):
+        markdown = """-   Item one   
+- Item two
+-    Item three"""
+        result =  markdown_to_html_node(markdown)
+        model = "<div><ul><li>Item one</li><li>Item two</li><li>Item three</li></ul></div>"
         self.assertEqual(result, model)
 
 

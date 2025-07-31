@@ -1,5 +1,5 @@
 import re
-from textnode import TextType, BlockType
+from enum_types import TextType, BlockType
 from htmlnode import LeafNode, ParentNode, TextNode
 
 def text_node_to_html_node(text_node):
@@ -135,15 +135,9 @@ def markdown_to_blocks(markdown):
     return clean_blocks
     
 def block_to_block_type(block):
-    if block[0] == "#":
-        i = 0
-        for c in block:
-            if c == "#":
-                i += 1
-        if i <= 6:
-            if block[i] == " ":
-                return BlockType.HEADING
-    elif block[:3] == "```" and block[-3:] == "```":
+    if re.match(r'^\#{1,6} ', block):
+        return BlockType.HEADING
+    elif block.strip()[:3] == "```" and block.strip()[-3:] == "```":
         return BlockType.CODE
 
     multi_lines = block.split("\n")
@@ -152,12 +146,12 @@ def block_to_block_type(block):
     u = 0
     o = 0
     num = 0
-    for i, line in enumerate(multi_lines):
-        if line[0] == ">":
+    for line in multi_lines:
+        if re.match(r'^>', line.lstrip()):
             q += 1
-        elif line[:2] == "- ":
+        elif re.match(r'^- ', line.lstrip()):
             u += 1
-        elif line[0] == str(i+1) and line[1:3] == ". ":
+        elif re.match(r'^\d+\. ', line.lstrip()):
             o += 1
         num += 1
     if q == num:
@@ -181,26 +175,26 @@ def get_tag_and_text(block, block_type):
         #for headings, build tag (h + level) and format text
         level = get_heading_level(block)
         tag = block_type.value["delim"] + str(level)
-        text = block[level:].strip()
+        text = " ".join(block[level:].splitlines()).strip()
     else:
         #generic tag
         tag = block_type.value["delim"]
     #text formating for non list block types
     if block_type == BlockType.PARAGRAPH:
-        text = block.strip()
+        text = " ".join(block.splitlines()).strip()
     elif block_type == BlockType.CODE:
         text = block[3:-3]
     #text formating for quotes 
     elif block_type == BlockType.QUOTE:
         text = list()
-        lines = block.split("\n")
+        lines = block.splitlines()
         for line in lines:
             text.append(line[1:].strip())
         text = "\n".join(text)
     #text formating for lists 
     elif block_type in (BlockType.UNORDERED_LIST, BlockType.ORDERED_LIST):
         text = list()
-        lines = block.split("\n")
+        lines = block.splitlines()
         for line in lines:
             #get marker lenght by finding first whitespace
             first_blank = 0
@@ -208,24 +202,34 @@ def get_tag_and_text(block, block_type):
                 if c == " ":
                     first_blank = i
                     break
-            text.append(line[first_blank:].strip())
-        text = "\n".join(text)
+            text.append(f"<{block_type.value["inside_delim"]}>{line[first_blank:].strip()}</{block_type.value["inside_delim"]}>")
+        text = "".join(text)
     return (tag, text)
 
-# def markdown_to_html_node(markdown):
-#     blocks = markdown_to_blocks(markdown)
-#     block_types = list()
-#     for block in blocks:
-#         block_types.append(block_to_block_type(block))
-#
-#     node_list = list()
-#     for b, bt in zip(blocks, block_types):
-#         if bt == BlockType.HEADING:
-#             level = get_heading_level(b)
-#             tag = bt.value["delim"] + str(level)
-#             text = b[level:]
-#         else:
-#             tag = bt.value["delim"]
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    block_types = list()
+    for block in blocks:
+        block_types.append(block_to_block_type(block))
+
+    tag_n_texts = list()
+    for b, bt in zip(blocks, block_types):
+        tag_n_texts.append(get_tag_and_text(b, bt))
+    
+    text_nodes = list()
+    for text in tag_n_texts:
+        text_nodes.append((text_to_textnodes(text[1]), text[0]))
+
+    parents_nodes = list()
+    for node in text_nodes:
+        children_list = list()
+        for child in node[0]:
+            children_list.append(text_node_to_html_node(child))
+        parents_nodes.append(ParentNode(node[1], children_list))
+    div_node = ParentNode("div", parents_nodes)
+    return div_node.to_html()
+
+    
 
 
 
