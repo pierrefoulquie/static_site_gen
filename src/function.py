@@ -1,3 +1,4 @@
+import os
 import re
 from enum_types import TextType, BlockType
 from htmlnode import LeafNode, ParentNode, TextNode
@@ -229,8 +230,42 @@ def markdown_to_html_node(markdown):
     div_node = ParentNode("div", parents_nodes)
     return div_node.to_html()
 
+def extract_title(markdown):
+    lines = str(markdown).splitlines()
+    for line in lines:
+        if re.match(r'^# ', line):
+            return line.lstrip("#").strip()
+    raise Exception("No h1 heading found")
     
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating from {from_path}\n to {dest_path}\n using {template_path}.")
+    if not os.path.exists(from_path):
+        raise FileNotFoundError(f"{from_path} file doesn't exist.")
+    elif not os.path.exists(template_path):
+        raise FileNotFoundError(f"{template_path} file doesn't exist.")
 
+    dir_content = os.listdir(from_path)
+    for content in dir_content:
+        elt = os.path.join(from_path, content)
+        if os.path.isfile(elt) and content.endswith(".md"):
+            with open(elt, "r") as from_file:
+                file_content = from_file.read()
 
+            with open(template_path, "r") as template_file:
+                template_content = template_file.read()
+            
+            html_content = markdown_to_html_node(file_content)
 
+            title = extract_title(file_content)
+            page_content = (template_content.replace("{{ Title }}", title)).replace("{{ Content }}", html_content)
+
+            dest_file_path = os.path.join(dest_path, f"{os.path.splitext(content)[0]}.html")
+            with open(dest_file_path, "w") as dest_file:
+                dest_file.write(page_content)
+
+        elif os.path.isdir(elt):
+            new_dest = os.path.join(dest_path, content)
+            if not os.path.exists(new_dest):
+                os.mkdir(new_dest)
+            generate_page(elt, template_path, new_dest)
 

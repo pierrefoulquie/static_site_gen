@@ -2,12 +2,19 @@ import os
 import shutil
 from enum_types import TextType
 from htmlnode import HTMLNode, LeafNode, TextNode
+from function import generate_page
 def main():
     working_dir = os.getcwd()
-    public_dir = os.path.join(working_dir, "public/")
-    static_dir = os.path.join(working_dir, "static/")
+    public_dir = os.path.join(working_dir, "public")
+    static_dir = os.path.join(working_dir, "static")
     initDirectories(public_dir, static_dir)
     copyDir(static_dir, public_dir)
+    from_path = os.path.join(working_dir,"content")
+    template_path = os.path.join(working_dir,"template.html")
+    dest_path = public_dir
+    generate_page(from_path, template_path, dest_path)
+
+
 
 def initDirectories(public_dir, static_dir):
     if not os.path.exists(public_dir):
@@ -25,18 +32,13 @@ def copyDir(source, target):
 
     source_content = os.listdir(source)
     for elt in source_content:
-        print(elt)
         elt_path = os.path.join(source, elt)
         new_target = os.path.join(target, elt)
         if os.path.isdir(elt_path):
-            print(f"{elt} est un dossier")
             os.mkdir(new_target)
-            print(f"{new_target} créé")
             copyDir(elt_path, new_target)
         elif os.path.isfile(elt_path):
-            print(f"{elt} est un fichier")
             shutil.copy(elt_path, target)
-            print(f"{elt} copié vers {target}")
             
 
 

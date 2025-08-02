@@ -11,7 +11,8 @@ from function import (split_nodes_delimiter,
         markdown_to_blocks,
         block_to_block_type,
         get_tag_and_text,
-        markdown_to_html_node)
+        markdown_to_html_node,
+        extract_title)
 
 class TestGetTagAndText(unittest.TestCase):
     def testParagraph(self):
@@ -447,6 +448,19 @@ strange spacing."""
         result =  markdown_to_html_node(markdown)
         model = "<div><ul><li>Item one</li><li>Item two</li><li>Item three</li></ul></div>"
         self.assertEqual(result, model)
+
+class TestExtractTitle(unittest.TestCase):
+    def testBasic(self):
+        title = "# This is a title"
+        result = extract_title(title)
+        model = "This is a title"
+        self.assertEqual(result, model)
+
+    def testNoHeading(self):
+        title = ">This is a title"
+        with self.assertRaises(Exception) as context:
+            result = extract_title(title)
+        self.assertEqual(str(context.exception), "No h1 heading found")
 
 
 if __name__ == "__main__":
