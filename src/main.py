@@ -1,18 +1,22 @@
 import os
+import sys
 import shutil
 from enum_types import TextType
 from htmlnode import HTMLNode, LeafNode, TextNode
 from function import generate_page
-def main():
+
+def main(basepath = "/"):
+    if len(sys.argv) >= 2:
+        basepath = sys.argv[1]
     working_dir = os.getcwd()
-    public_dir = os.path.join(working_dir, "public")
+    public_dir = os.path.join(working_dir, "docs")
     static_dir = os.path.join(working_dir, "static")
     initDirectories(public_dir, static_dir)
     copyDir(static_dir, public_dir)
     from_path = os.path.join(working_dir,"content")
     template_path = os.path.join(working_dir,"template.html")
     dest_path = public_dir
-    generate_page(from_path, template_path, dest_path)
+    generate_page(from_path, template_path, dest_path, basepath)
 
 
 

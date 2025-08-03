@@ -237,7 +237,7 @@ def extract_title(markdown):
             return line.lstrip("#").strip()
     raise Exception("No h1 heading found")
     
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating from {from_path}\n to {dest_path}\n using {template_path}.")
     if not os.path.exists(from_path):
         raise FileNotFoundError(f"{from_path} file doesn't exist.")
@@ -258,6 +258,9 @@ def generate_page(from_path, template_path, dest_path):
 
             title = extract_title(file_content)
             page_content = (template_content.replace("{{ Title }}", title)).replace("{{ Content }}", html_content)
+            page_content = page_content.replace('href"/', f'href"{basepath}')
+            page_content = page_content.replace('src"/', f'src"{basepath}')
+
 
             dest_file_path = os.path.join(dest_path, f"{os.path.splitext(content)[0]}.html")
             with open(dest_file_path, "w") as dest_file:
@@ -267,5 +270,5 @@ def generate_page(from_path, template_path, dest_path):
             new_dest = os.path.join(dest_path, content)
             if not os.path.exists(new_dest):
                 os.mkdir(new_dest)
-            generate_page(elt, template_path, new_dest)
+            generate_page(elt, template_path, new_dest, basepath)
 
